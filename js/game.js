@@ -1,4 +1,4 @@
-class Skier {
+class Game {
   constructor() {
     // Asset names
     this.assetNames = {
@@ -48,7 +48,7 @@ class Skier {
     this.loadedAssets = {};
 
     // Available obstacles
-    this.obstacleTypes = ['tree', 'treeCluster', 'rock1', 'rock2'];
+    this.obstacleTypes = [this.assetNames.TREE, this.assetNames.TREECLUSTER, this.assetNames.ROCK1, this.assetNames.ROCK2];
 
     this.obstacles = [];
 
@@ -195,34 +195,46 @@ class Skier {
     const x              = (this.gameWidth - skierImage.width) / 2;
     const y              = (this.gameHeight - skierImage.height) / 2;
 
-    this.ctx.drawImage(skierImage, x, y, skierImage.width, skierImage.height);
+    // Get skier object
+    const skier = Game.createAssetImage(x, y, skierAssetName);
+
+    this.ctx.drawImage(skierImage, skier.x, skier.y, skierImage.width, skierImage.height);
   };
+
+  /**
+   * Factory for asset images
+   * @param x X position
+   * @param y Y position
+   * @param type Asset type
+   * @returns {AssetImage}
+   */
+  static createAssetImage(x, y, type) {
+    return new AssetImage(x, y, type);
+  }
 
   /**
    * Paint obstacles
    */
   drawObstacles() {
-    const newObstacles = [];
-
-    this.obstacles.forEach(obstacle => {
+    // Filter obstacles which we no longer need
+    this.obstacles = this.obstacles.filter(obstacle => {
       const obstacleImage = this.loadedAssets[obstacle.type];
+      // Appearance of movement as skier moves. Obstacles stay where they are, and skier is the one moving.
       const x             = obstacle.x - this.skierMapX - obstacleImage.width / 2;
       const y             = obstacle.y - this.skierMapY - obstacleImage.height / 2;
 
-      // Don't draw in invalid locations
+      // Don't draw in invalid locations, remove obstacles as they're not longer needed
       if (x < (this.objectPlacementBuffer * -2) ||
           x > this.gameWidth + this.objectPlacementBuffer ||
           y < (this.objectPlacementBuffer * -2)
           || y > this.gameHeight + this.objectPlacementBuffer) {
-        return;
+        return false;
       }
 
       this.ctx.drawImage(obstacleImage, x, y, obstacleImage.width, obstacleImage.height);
 
-      newObstacles.push(obstacle);
+      return true;
     });
-
-    this.obstacles = newObstacles;
   };
 
   /**
@@ -246,20 +258,28 @@ class Skier {
     }
 
     // Sort obstacles by y value
-    this.obstacles = this.obstacles.sort((current, prev) => {
+    this.obstacles = this.sortObstaclesByY();
+  };
+
+  /**
+   * Sort obstacles by their Y values
+   * @returns {AssetImage[]}
+   */
+  sortObstaclesByY() {
+    return this.obstacles.sort((current, prev) => {
       if (current.y === prev.y) {
         return 0;
       }
       return current.y > prev.y ? 1 : -1;
     });
-  };
+  }
 
   /**
    * Place an obstacle, ensuring not to overlap with any other obstacles
    * @param direction Skier direction
    */
   placeNewObstacle(direction) {
-    const shouldPlaceObstacle = Skier.getRandomNumber(this.objectPlaceConstant);
+    const shouldPlaceObstacle = Game.getRandomNumber(this.objectPlaceConstant);
     // Only continue if we randomly generate an eight
     if (shouldPlaceObstacle !== this.objectPlaceConstant) {
       return;
@@ -311,16 +331,13 @@ class Skier {
    * @param maxY Maximum y value
    */
   placeRandomObstacle(minX, maxX, minY, maxY) {
-    const obstacleIndex = Skier.getRandomNumber(this.obstacleTypes.length - 1);
+    const obstacleIndex = Game.getRandomNumber(this.obstacleTypes.length - 1);
 
     // Find an open position
     const position = this.calculateOpenPosition(minX, maxX, minY, maxY);
 
-    this.obstacles.push({
-      type: this.obstacleTypes[obstacleIndex],
-      x   : position.x,
-      y   : position.y
-    })
+    // Separate obstacles into another class for easy modification in the future
+    this.obstacles.push(Game.createAssetImage(position.x, position.y, this.obstacleTypes[obstacleIndex]));
   };
 
   /**
@@ -340,7 +357,7 @@ class Skier {
       x = _.random(minX, maxX);
       y = _.random(minY, maxY);
 
-      // Check for collision with current objects
+      // Check for collision with current objects, don't proceed if there is one
       const foundCollision = this.obstacles.filter(obstacle => {
         return x > (obstacle.x - this.objectPlacementBuffer) &&
                x < (obstacle.x + this.objectPlacementBuffer) &&
@@ -381,7 +398,7 @@ class Skier {
         top   : obstacle.y + obstacleImage.height - 5,
         bottom: obstacle.y + obstacleImage.height
       };
-      return Skier.skierObstacleOverlap(skierRect, obstacleRect);
+      return Game.skierObstacleOverlap(skierRect, obstacleRect);
     });
 
     if (collision.length) {
@@ -511,6 +528,29 @@ class Skier {
 
 $(() => {
   // Initiate the game
-  const skier = new Skier();
-  skier.initGame();
+  const game = new Game();
+  game.initGame();
 });
+
+/**
+ * Set drawn images into a separate class for easy modification in the future with whatever we need
+ */
+class AssetImage {
+  constructor(x, y, type) {
+    this._x = x;
+    this._y = y;
+    this._type = type;
+  }
+
+  get x() {
+    return this._x;
+  }
+
+  get y() {
+    return this._y;
+  }
+
+  get type() {
+    return this._type;
+  }
+}
