@@ -1,18 +1,33 @@
 class Skier {
   constructor() {
-    this.assets       = {
-      'skierCrash'    : 'img/skier_crash.png',
-      'skierLeft'     : 'img/skier_left.png',
-      'skierLeftDown' : 'img/skier_left_down.png',
-      'skierDown'     : 'img/skier_down.png',
-      'skierRightDown': 'img/skier_right_down.png',
-      'skierRight'    : 'img/skier_right.png',
-      'tree'          : 'img/tree_1.png',
-      'treeCluster'   : 'img/tree_cluster.png',
-      'rock1'         : 'img/rock_1.png',
-      'rock2'         : 'img/rock_2.png'
+    // Asset names
+    this.assetNames = {
+      SKIERCRASH: 'skierCrash',
+      SKIERLEFT: 'skierLeft',
+      SKIERLEFTDOWN: 'skierLeftDown',
+      SKIERDOWN: 'skierDown',
+      SKIERRIGHTDOWN: 'skierRightDown',
+      SKIERRIGHT: 'skierRight',
+      TREE: 'tree',
+      TREECLUSTER: 'treeCluster',
+      ROCK1: 'rock1',
+      ROCK2: 'rock2'
     };
-    // Record key values rather than use magic numbers
+    // Asset images
+    this.assets       = {
+      [this.assetNames.SKIERCRASH]    : 'img/skier_crash.png',
+      [this.assetNames.SKIERLEFT]     : 'img/skier_left.png',
+      [this.assetNames.SKIERLEFTDOWN] : 'img/skier_left_down.png',
+      [this.assetNames.SKIERDOWN]     : 'img/skier_down.png',
+      [this.assetNames.SKIERRIGHTDOWN]: 'img/skier_right_down.png',
+      [this.assetNames.SKIERRIGHT]    : 'img/skier_right.png',
+      [this.assetNames.TREE]          : 'img/tree_1.png',
+      [this.assetNames.TREECLUSTER]   : 'img/tree_cluster.png',
+      [this.assetNames.ROCK1]         : 'img/rock_1.png',
+      [this.assetNames.ROCK2]         : 'img/rock_2.png'
+    };
+
+    // Key values for directional keys
     this.keyValues = {
       left: 37,
       right: 39,
@@ -148,22 +163,22 @@ class Skier {
     let skierAssetName;
     switch (this.skierDirection) {
       case this.skierDirectionValues.crashed:
-        skierAssetName = 'skierCrash';
+        skierAssetName = this.assetNames.SKIERCRASH;
         break;
       case this.skierDirectionValues.left:
-        skierAssetName = 'skierLeft';
+        skierAssetName = this.assetNames.SKIERLEFT;
         break;
       case this.skierDirectionValues.downLeft:
-        skierAssetName = 'skierLeftDown';
+        skierAssetName = this.assetNames.SKIERLEFTDOWN;
         break;
       case this.skierDirectionValues.down:
-        skierAssetName = 'skierDown';
+        skierAssetName = this.assetNames.SKIERDOWN;
         break;
       case this.skierDirectionValues.downRight:
-        skierAssetName = 'skierRightDown';
+        skierAssetName = this.assetNames.SKIERRIGHTDOWN;
         break;
       case this.skierDirectionValues.right:
-        skierAssetName = 'skierRight';
+        skierAssetName = this.assetNames.SKIERRIGHT;
         break;
     }
 
@@ -366,7 +381,7 @@ class Skier {
         top   : obstacle.y + obstacleImage.height - 5,
         bottom: obstacle.y + obstacleImage.height
       };
-      return this.skierObstacleOverlap(skierRect, obstacleRect);
+      return Skier.skierObstacleOverlap(skierRect, obstacleRect);
     });
 
     if (collision.length) {
@@ -380,7 +395,7 @@ class Skier {
    * @param obstacle
    * @returns {boolean}
    */
-  skierObstacleOverlap(skier, obstacle) {
+  static skierObstacleOverlap(skier, obstacle) {
     return !(obstacle.left > skier.right ||
              obstacle.right < skier.left ||
              obstacle.top > skier.bottom ||
@@ -495,6 +510,7 @@ class Skier {
 }
 
 $(() => {
+  // Initiate the game
   const skier = new Skier();
   skier.initGame();
 });
