@@ -209,10 +209,10 @@ class Game {
    * Update the points counter to show the current points
    */
   updatePointsCounter() {
-    this.pointsCounter.find('#current-points').html('Points: ' + this.skier.points);
-    this.pointsCounter.find('#high-score').html('High Score: ' + this.skier.highScore);
-    this.pointsCounter.find('#all-time').html('All Time High Score: ' + this.skier.allTimeHighScore);
-    this.pointsCounter.find('#speed').html('Speed: ' + this.skier.skierSpeedDisplay + ' MPH');
+    this.currentScore.html('Points: ' + this.skier.points);
+    this.highScore.html('High Score: ' + this.skier.highScore);
+    this.allTimeScore.html('All Time High Score: ' + this.skier.allTimeHighScore);
+    this.currentSpeed.html('Speed: ' + this.skier.skierSpeedDisplay + ' MPH');
   }
 
   /**
@@ -707,6 +707,8 @@ $(() => {
   // Initiate the game
   const game = new Game();
   game.initGame();
+
+  window.game = game;
 });
 
 
@@ -829,7 +831,7 @@ class Skier {
    * Reset skier speed on crash
    */
   resetSpeed() {
-    clearTimeout(this.increaseSpeedWatcher);
+    clearInterval(this.increaseSpeedWatcher);
     this.skierSpeed  = this.initialSpeed;
     this._skierSpeed = this.initialSpeed;
     this.skierSpeedDisplay = 0;
@@ -839,7 +841,7 @@ class Skier {
    * Pause the skier when turning left or right and not moving
    */
   pauseSpeedIncrease() {
-    clearTimeout(this.increaseSpeedWatcher);
+    clearInterval(this.increaseSpeedWatcher);
     this.increaseSpeedWatcher = null;
   }
 }
