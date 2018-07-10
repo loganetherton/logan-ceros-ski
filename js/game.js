@@ -1,6 +1,8 @@
 class Game {
   constructor() {
-    // Asset names
+    /**
+     * Assets and display
+     */
     this.assetNames = {
       SKIERCRASH    : 'skierCrash',
       SKIERLEFT     : 'skierLeft',
@@ -39,23 +41,6 @@ class Game {
       [this.assetNames.SKIERJUMP5]    : 'img/skier_jump_5.png',
     };
 
-    // Key values for directional keys
-    this.keyValues = {
-      left: 37,
-      right: 39,
-      down: 40,
-      up: 38
-    };
-    // Directional values for which way the skier is moving
-    this.skierDirectionValues = {
-      crashed: 0,
-      left: 1,
-      downLeft: 2,
-      down: 3,
-      downRight: 4,
-      right: 5,
-      up: 6
-    };
     // Cache for application assets?
     this.loadedAssets = {};
 
@@ -66,33 +51,35 @@ class Game {
 
     this.obstacles = [];
 
-    this.gameWidth  = window.innerWidth;
-    this.gameHeight = window.innerHeight;
-
-    // Ensure mobile handling
-    this.pixelRatio = window.devicePixelRatio;
-
-    // Ratio for calculating skier movement
-    this.skierMovementRatio = 1.4142;
-
-    // Object placement standard to ensure that the screen doesn't fill up with objects
-    this.objectPlaceConstant = 8;
-
-    // Buffer to ensure objects aren't placed at the very edge
-    this.objectPlacementBuffer = 50;
-
-    // Initial skier speed
-    this.initialSpeed = 8;
-
     // Initial load object multipliers
     this.initialLoadObjectMultipliers = {
       low: 5,
       high: 7
     };
 
+    // Object placement standard to ensure that the screen doesn't fill up with objects
+    this.objectPlacementConstant = 8;
+
+    // Buffer to ensure objects aren't placed at the very edge
+    this.objectPlacementBuffer = 50;
+
+    // Key values for directional keys
+    this.keyValues = {
+      left: 37,
+      right: 39,
+      down: 40,
+      up: 38
+    };
+
+    this.gameWidth  = window.innerWidth;
+    this.gameHeight = window.innerHeight;
+
+    // Ensure mobile handling
+    this.pixelRatio = window.devicePixelRatio;
+
     // Display for points
-    const pointsCounterWidthRatio = 2;
-     const pointsCounterHeightRatio = 7;
+    const pointsCounterWidthRatio  = 2;
+    const pointsCounterHeightRatio = 7;
     this.pointsCounterWidth = this.gameWidth / pointsCounterWidthRatio;
     this.pointsCounterHeight = this.gameHeight / pointsCounterHeightRatio;
     this.pointsCounter = $('.points');
@@ -106,6 +93,9 @@ class Game {
     this.resetButtonMarginLeft = this.gameWidth / resetMarginRatio;
     this.resetButton = $('#reset');
 
+    /**
+     * Skier
+     */
     // Skier object instance
     this.skier = null;
 
@@ -141,11 +131,13 @@ class Game {
     // Remove content to draw the next frame
     this.clearCanvas();
 
-    // Handle movement
-    this.moveSkier();
+    if (this.skier) {
+      // Handle movement
+      this.moveSkier();
 
-    // Handle crash
-    this.checkIfSkierHitObstacle();
+      // Handle crash
+      this.checkIfSkierHitObstacle();
+    }
 
     // Place assets
     this.drawSkier();
@@ -180,25 +172,25 @@ class Game {
    */
   moveSkier() {
     let awardPoints = false;
-    switch (this.skierDirection) {
-      case this.skierDirectionValues.downLeft:
-        this.skierMapX -= Math.round(this.skierSpeed / this.skierMovementRatio);
-        this.skierMapY += Math.round(this.skierSpeed / this.skierMovementRatio);
+    switch (this.skier.skierDirection) {
+      case this.skier.skierDirectionValues.downLeft:
+        this.skier.skierMapX -= Math.round(this.skier.skierSpeed / this.skier.skierMovementRatio);
+        this.skier.skierMapY += Math.round(this.skier.skierSpeed / this.skier.skierMovementRatio);
 
-        this.placeNewObstacle(this.skierDirection);
+        this.placeNewObstacle(this.skier.skierDirection);
         awardPoints = true;
         break;
-      case this.skierDirectionValues.down:
-        this.skierMapY += this.skierSpeed;
+      case this.skier.skierDirectionValues.down:
+        this.skier.skierMapY += this.skier.skierSpeed;
 
-        this.placeNewObstacle(this.skierDirection);
+        this.placeNewObstacle(this.skier.skierDirection);
         awardPoints = true;
         break;
-      case this.skierDirectionValues.downRight:
-        this.skierMapX += this.skierSpeed / this.skierMovementRatio;
-        this.skierMapY += this.skierSpeed / this.skierMovementRatio;
+      case this.skier.skierDirectionValues.downRight:
+        this.skier.skierMapX += this.skier.skierSpeed / this.skier.skierMovementRatio;
+        this.skier.skierMapY += this.skier.skierSpeed / this.skier.skierMovementRatio;
 
-        this.placeNewObstacle(this.skierDirection);
+        this.placeNewObstacle(this.skier.skierDirection);
         awardPoints = true;
         break;
     }
@@ -211,33 +203,37 @@ class Game {
 
   /**
    * Return the image to use for the skier based on direction
-   * @returns {int}
+   * @returns {string}
    */
   getSkierImageByMovement() {
     let skierAssetName;
+    // Skier not drawn
+    if (!this.skier) {
+      return this.assetNames.SKIERRIGHT;
+    }
     // Jumping
     if (this.skier && this.skier.jumpImage) {
       // Set current jump image
       return this.assetNames.SKIERJUMP1.replace('1', this.skier.jumpImage)
     }
     // Normal movement
-    switch (this.skierDirection) {
-      case this.skierDirectionValues.crashed:
+    switch (this.skier.skierDirection) {
+      case this.skier.skierDirectionValues.crashed:
         skierAssetName = this.assetNames.SKIERCRASH;
         break;
-      case this.skierDirectionValues.left:
+      case this.skier.skierDirectionValues.left:
         skierAssetName = this.assetNames.SKIERLEFT;
         break;
-      case this.skierDirectionValues.downLeft:
+      case this.skier.skierDirectionValues.downLeft:
         skierAssetName = this.assetNames.SKIERLEFTDOWN;
         break;
-      case this.skierDirectionValues.down:
+      case this.skier.skierDirectionValues.down:
         skierAssetName = this.assetNames.SKIERDOWN;
         break;
-      case this.skierDirectionValues.downRight:
+      case this.skier.skierDirectionValues.downRight:
         skierAssetName = this.assetNames.SKIERRIGHTDOWN;
         break;
-      case this.skierDirectionValues.right:
+      case this.skier.skierDirectionValues.right:
         skierAssetName = this.assetNames.SKIERRIGHT;
         break;
     }
@@ -287,8 +283,8 @@ class Game {
     this.obstacles = this.obstacles.filter(obstacle => {
       const obstacleImage = this.loadedAssets[obstacle.type];
       // Appearance of movement as skier moves. Obstacles stay where they are, and skier is the one moving.
-      const x             = obstacle.x - this.skierMapX - obstacleImage.width / 2;
-      const y             = obstacle.y - this.skierMapY - obstacleImage.height / 2;
+      const x             = obstacle.x - this.skier.skierMapX - obstacleImage.width / 2;
+      const y             = obstacle.y - this.skier.skierMapY - obstacleImage.height / 2;
 
       // Don't draw in invalid locations, remove obstacles as they're not longer needed
       if (x < (this.objectPlacementBuffer * -2) ||
@@ -315,7 +311,7 @@ class Game {
     const minX = this.objectPlacementBuffer * -1;
     const maxX = this.gameWidth + this.objectPlacementBuffer;
     // Place objects beneath the player's position
-    const minY = this.gameHeight / 2 + (this.objectPlaceConstant * 2);
+    const minY = this.gameHeight / 2 + (this.objectPlacementConstant * 2);
     const maxY = this.gameHeight + this.objectPlacementBuffer;
 
     // Iterate and place objects
@@ -345,36 +341,36 @@ class Game {
    * @param direction Skier direction
    */
   placeNewObstacle(direction) {
-    const shouldPlaceObstacle = Game.getRandomNumber(this.objectPlaceConstant);
+    const shouldPlaceObstacle = Game.getRandomNumber(this.objectPlacementConstant);
     // Only continue if we randomly generate an eight
-    if (shouldPlaceObstacle !== this.objectPlaceConstant) {
+    if (shouldPlaceObstacle !== this.objectPlacementConstant) {
       return;
     }
 
-    const leftEdge   = this.skierMapX;
-    const rightEdge  = this.skierMapX + this.gameWidth;
-    const topEdge    = this.skierMapY;
-    const bottomEdge = this.skierMapY + this.gameHeight;
+    const leftEdge   = this.skier.skierMapX;
+    const rightEdge  = this.skier.skierMapX + this.gameWidth;
+    const topEdge    = this.skier.skierMapY;
+    const bottomEdge = this.skier.skierMapY + this.gameHeight;
 
     switch (direction) {
-      case this.skierDirectionValues.left:
+      case this.skier.skierDirectionValues.left:
         this.placeRandomObstacle(leftEdge - this.objectPlacementBuffer, leftEdge, topEdge, bottomEdge);
         break;
-      case this.skierDirectionValues.downLeft:
+      case this.skier.skierDirectionValues.downLeft:
         this.placeRandomObstacle(leftEdge - this.objectPlacementBuffer, leftEdge, topEdge, bottomEdge);
         this.placeRandomObstacle(leftEdge, rightEdge, bottomEdge, bottomEdge + this.objectPlacementBuffer);
         break;
-      case this.skierDirectionValues.down:
+      case this.skier.skierDirectionValues.down:
         this.placeRandomObstacle(leftEdge, rightEdge, bottomEdge, bottomEdge + this.objectPlacementBuffer);
         break;
-      case this.skierDirectionValues.downRight:
+      case this.skier.skierDirectionValues.downRight:
         this.placeRandomObstacle(rightEdge, rightEdge + this.objectPlacementBuffer, topEdge, bottomEdge);
         this.placeRandomObstacle(leftEdge, rightEdge, bottomEdge, bottomEdge + this.objectPlacementBuffer);
         break;
-      case this.skierDirectionValues.right:
+      case this.skier.skierDirectionValues.right:
         this.placeRandomObstacle(rightEdge, rightEdge + this.objectPlacementBuffer, topEdge, bottomEdge);
         break;
-      case this.skierDirectionValues.up:
+      case this.skier.skierDirectionValues.up:
         this.placeRandomObstacle(leftEdge, rightEdge, topEdge - this.objectPlacementBuffer, topEdge);
         break;
     }
@@ -449,10 +445,10 @@ class Game {
     const skierImage     = this.loadedAssets[skierAssetName];
     // Draw rectangle to keep skier in the middle
     const skierRect      = {
-      left  : this.skierMapX + this.gameWidth / 2,
-      right : this.skierMapX + skierImage.width + this.gameWidth / 2,
-      top   : this.skierMapY + skierImage.height - 5 + this.gameHeight / 2,
-      bottom: this.skierMapY + skierImage.height + this.gameHeight / 2
+      left  : this.skier.skierMapX + this.gameWidth / 2,
+      right : this.skier.skierMapX + skierImage.width + this.gameWidth / 2,
+      top   : this.skier.skierMapY + skierImage.height - 5 + this.gameHeight / 2,
+      bottom: this.skier.skierMapY + skierImage.height + this.gameHeight / 2
     };
 
     // Check to see if skier and obstacle dimensions overlap
@@ -469,12 +465,12 @@ class Game {
 
     if (collision.length) {
        // Let's get that skier in  the air! Only jump when heading downhill
-      if (collision[0].type === 'jumpRamp' && [this.skierDirectionValues.downRight, this.skierDirectionValues.down,
-                                               this.skierDirectionValues.downLeft].includes(this.skierDirection)) {
+      if (collision[0].type === 'jumpRamp' && [this.skier.skierDirectionValues.downRight, this.skier.skierDirectionValues.down,
+                                               this.skier.skierDirectionValues.downLeft].includes(this.skier.skierDirection)) {
         this.handleJump();
       // Crash skier, unless jumping
       } else if (!this.skier.isJumping) {
-        this.skierDirection = this.skierDirectionValues.crashed;
+        this.skier.skierDirection = this.skier.skierDirectionValues.crashed;
         // Remove points, store what the previous total was
         this.skier.resetPoints();
       }
@@ -546,7 +542,7 @@ class Game {
    * @returns {boolean}
    */
   skierCrashedState() {
-    return this.skierDirection === this.skierDirectionValues.crashed;
+    return this.skier.skierDirection === this.skier.skierDirectionValues.crashed;
   }
 
   /**
@@ -557,39 +553,39 @@ class Game {
       switch (event.which) {
         // Move left based on current direction. If crashed, set in down-left position
         case this.keyValues.left:
-          if (this.skierDirection === this.skierDirectionValues.left) {
-            this.skierMapX -= this.skierSpeed;
-            this.placeNewObstacle(this.skierDirection);
+          if (this.skier.skierDirection === this.skier.skierDirectionValues.left) {
+            this.skier.skierMapX -= this.skier.skierSpeed;
+            this.placeNewObstacle(this.skier.skierDirection);
           } else if (this.skierCrashedState()) {
-            this.skierDirection = this.skierDirectionValues.downLeft;
+            this.skier.skierDirection = this.skier.skierDirectionValues.downLeft;
           } else {
-            this.skierDirection--;
+            this.skier.skierDirection--;
           }
           event.preventDefault();
           break;
         // Move right based on current direction. If crashed, set in down-right position
         case this.keyValues.right:
-          if (this.skierDirection === this.skierDirectionValues.right) {
-            this.skierMapX += this.skierSpeed;
-            this.placeNewObstacle(this.skierDirection);
+          if (this.skier.skierDirection === this.skier.skierDirectionValues.right) {
+            this.skier.skierMapX += this.skier.skierSpeed;
+            this.placeNewObstacle(this.skier.skierDirection);
           } else if (this.skierCrashedState()) {
-            this.skierDirection = this.skierDirectionValues.downRight;
+            this.skier.skierDirection = this.skier.skierDirectionValues.downRight;
           } else {
-            this.skierDirection++;
+            this.skier.skierDirection++;
           }
           event.preventDefault();
           break;
         // Move up if skier is going either complete left or right
         case this.keyValues.up:
-          if (this.skierDirection === this.skierDirectionValues.left ||
-              this.skierDirection === this.skierDirectionValues.right) {
-            this.skierMapY -= this.skierSpeed;
-            this.placeNewObstacle(this.skierDirectionValues.up);
+          if (this.skier.skierDirection === this.skier.skierDirectionValues.left ||
+              this.skier.skierDirection === this.skier.skierDirectionValues.right) {
+            this.skier.skierMapY -= this.skier.skierSpeed;
+            this.placeNewObstacle(this.skier.skierDirectionValues.up);
           }
           event.preventDefault();
           break;
         case this.keyValues.down:
-          this.skierDirection = this.skierDirectionValues.down;
+          this.skier.skierDirection = this.skier.skierDirectionValues.down;
           event.preventDefault();
           break;
       }
@@ -600,11 +596,11 @@ class Game {
    * Handle the initial drawing, set initial values for speed, direction, etc
    */
   initialDraw() {
-    // skier movement and direction values
-    this.skierDirection = this.skierDirectionValues.right;
-    this.skierMapX      = 0;
-    this.skierMapY      = 0;
-    this.skierSpeed     = this.initialSpeed;
+    // // skier movement and direction values
+    // this.skierDirection = this.skierDirectionValues.right;
+    // this.skierMapX      = 0;
+    // this.skierMapY      = 0;
+    // this.skierSpeed     = this.initialSpeed;
 
     // Create canvas and set full screen
     this.canvas = $('<canvas></canvas>')
@@ -654,8 +650,31 @@ class AssetImage {
 }
 
 class Skier extends AssetImage {
-  constructor() {
+  constructor(x, y) {
     super();
+
+    // Directional values for which way the skier is moving
+    this.skierDirectionValues = {
+      crashed: 0,
+      left: 1,
+      downLeft: 2,
+      down: 3,
+      downRight: 4,
+      right: 5,
+      up: 6
+    };
+
+    // Current skier direction
+    this.skierDirection = this.skierDirectionValues.right;
+
+    // Skier position
+    this.skierMapX    = 0;
+    this.skierMapY    = 0;
+    // Skier speed
+    this.initialSpeed = 8;
+    this.skierSpeed   = this.initialSpeed;
+    // Ratio for calculating skier movement
+    this.skierMovementRatio = 1.4142;
 
     // Points
     this.points = 0;
