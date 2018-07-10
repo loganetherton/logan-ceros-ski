@@ -2,19 +2,25 @@ class Game {
   constructor() {
     // Asset names
     this.assetNames = {
-      SKIERCRASH: 'skierCrash',
-      SKIERLEFT: 'skierLeft',
-      SKIERLEFTDOWN: 'skierLeftDown',
-      SKIERDOWN: 'skierDown',
+      SKIERCRASH    : 'skierCrash',
+      SKIERLEFT     : 'skierLeft',
+      SKIERLEFTDOWN : 'skierLeftDown',
+      SKIERDOWN     : 'skierDown',
       SKIERRIGHTDOWN: 'skierRightDown',
-      SKIERRIGHT: 'skierRight',
-      TREE: 'tree',
-      TREECLUSTER: 'treeCluster',
-      ROCK1: 'rock1',
-      ROCK2: 'rock2'
+      SKIERRIGHT    : 'skierRight',
+      TREE          : 'tree',
+      TREECLUSTER   : 'treeCluster',
+      ROCK1         : 'rock1',
+      ROCK2         : 'rock2',
+      JUMPRAMP      : 'jumpRamp',
+      SKIERJUMP1    : 'skierJump1',
+      SKIERJUMP2    : 'skierJump2',
+      SKIERJUMP3    : 'skierJump3',
+      SKIERJUMP4    : 'skierJump4',
+      SKIERJUMP5    : 'skierJump5',
     };
     // Asset images
-    this.assets       = {
+    this.assets = {
       [this.assetNames.SKIERCRASH]    : 'img/skier_crash.png',
       [this.assetNames.SKIERLEFT]     : 'img/skier_left.png',
       [this.assetNames.SKIERLEFTDOWN] : 'img/skier_left_down.png',
@@ -24,7 +30,13 @@ class Game {
       [this.assetNames.TREE]          : 'img/tree_1.png',
       [this.assetNames.TREECLUSTER]   : 'img/tree_cluster.png',
       [this.assetNames.ROCK1]         : 'img/rock_1.png',
-      [this.assetNames.ROCK2]         : 'img/rock_2.png'
+      [this.assetNames.ROCK2]         : 'img/rock_2.png',
+      [this.assetNames.JUMPRAMP]      : 'img/jump_ramp.png',
+      [this.assetNames.SKIERJUMP1]    : 'img/skier_jump_1.png',
+      [this.assetNames.SKIERJUMP2]    : 'img/skier_jump_2.png',
+      [this.assetNames.SKIERJUMP3]    : 'img/skier_jump_3.png',
+      [this.assetNames.SKIERJUMP4]    : 'img/skier_jump_4.png',
+      [this.assetNames.SKIERJUMP5]    : 'img/skier_jump_5.png',
     };
 
     // Key values for directional keys
@@ -48,7 +60,9 @@ class Game {
     this.loadedAssets = {};
 
     // Available obstacles
-    this.obstacleTypes = [this.assetNames.TREE, this.assetNames.TREECLUSTER, this.assetNames.ROCK1, this.assetNames.ROCK2];
+    this.obstacleTypes =
+    [this.assetNames.TREE, this.assetNames.TREECLUSTER, this.assetNames.ROCK1, this.assetNames.ROCK2,
+     this.assetNames.JUMPRAMP];
 
     this.obstacles = [];
 
@@ -191,8 +205,14 @@ class Game {
    * Return the image to use for the skier based on direction
    * @returns {int}
    */
-  getSkierImageByDirection() {
+  getSkierImageByMovement() {
     let skierAssetName;
+    // Jumping
+    if (this.skier && this.skier.jumpImage) {
+      // Set current jump image
+      return this.assetNames.SKIERJUMP1.replace('1', this.skier.jumpImage)
+    }
+    // Normal movement
     switch (this.skierDirection) {
       case this.skierDirectionValues.crashed:
         skierAssetName = this.assetNames.SKIERCRASH;
@@ -222,7 +242,7 @@ class Game {
    */
   drawSkier() {
     // Determine asset based on direction
-    const skierAssetName = this.getSkierImageByDirection();
+    const skierAssetName = this.getSkierImageByMovement();
 
     const skierImage     = this.loadedAssets[skierAssetName];
     const x              = (this.gameWidth - skierImage.width) / 2;
@@ -417,7 +437,7 @@ class Game {
    * If obstacle and skier image overlap, signify a crash and stop skier
    */
   checkIfSkierHitObstacle() {
-    const skierAssetName = this.getSkierImageByDirection();
+    const skierAssetName = this.getSkierImageByMovement();
     const skierImage     = this.loadedAssets[skierAssetName];
     // Draw rectangle to keep skier in the middle
     const skierRect      = {
@@ -440,11 +460,35 @@ class Game {
     });
 
     if (collision.length) {
-      this.skierDirection = 0;
-      // Remove points, store what the previous total was
-      this.skier.resetPoints();
+      // Let's get that skier in  the air!
+      if (collision[0].type === 'jumpRamp') {
+        this.handleJump();
+      // Crash skier, unless jumping
+      } else if (!this.skier.isJumping) {
+        this.skierDirection = 0;
+        // Remove points, store what the previous total was
+        this.skier.resetPoints();
+      }
     }
   };
+
+  /**
+   * Skier jumps, set appropriate properties
+   */
+  handleJump() {
+    this.skier.isJumping = true;
+    this.skier.jumpImage = 1;
+    // Handle jumping
+    const jumpInterval = setInterval(() => {
+      if (this.skier.jumpImage < 5) {
+        this.skier.jumpImage++;
+      } else {
+        this.skier.isJumping = false;
+        this.skier.jumpImage = null;
+        clearInterval(jumpInterval);
+      }
+    }, this.skier.jumpInterval);
+  }
 
   /**
    * Determine if skier and object are overlapping coordinates
@@ -595,10 +639,20 @@ class Skier extends AssetImage {
   constructor() {
     super();
 
+    // Points
     this.points = 0;
-    this.previousPoints = 0;
     this.highScore = 0;
     this.allTimeHighScore = 0;
+
+    // Keep track of movement so we can award points based on how far the skier has gone since last point
+    this.movementBeforePoints = 0;
+
+    // Skier is jumping
+    this.isJumping = false;
+    // Jump graphic to use
+    this.jumpImage = null;
+    // Interval between changing jump images
+    this.jumpInterval = 250;
 
     // Retrieve all time high score from localStorage
     const allTimeHighScore = localStorage.getItem('allTimeHighScore');
@@ -608,20 +662,27 @@ class Skier extends AssetImage {
   }
 
   /**
-   * Increase the number of points the player has
+   * Increase the number of points the player has. Award a point for every 3 movement spaces, or one space if jumping
    */
   increasePoints() {
-    this.points = this.points + 1;
+    // Award a point every 3 spaces, or else every one space on a jump
+    if (this.movementBeforePoints >= 3 || this.isJumping) {
+      this.movementBeforePoints = 0;
+      this.points = this.points + 1;
 
-    // Store high score
-    if (this.highScore < this.points) {
-      this.highScore = this.points;
-    }
+      // Store high score
+      if (this.highScore < this.points) {
+        this.highScore = this.points;
+      }
 
-    // Store all time high score both in instance and in localStorage
-    if (this.allTimeHighScore < this.points) {
-      this.allTimeHighScore = this.points;
-      localStorage.setItem('allTimeHighScore', this.points);
+      // Store all time high score both in instance and in localStorage
+      if (this.allTimeHighScore < this.points) {
+        this.allTimeHighScore = this.points;
+        localStorage.setItem('allTimeHighScore', this.points);
+      }
+    // Increase movement to keep track of when to award points
+    } else {
+      this.movementBeforePoints++;
     }
   }
 
@@ -629,9 +690,6 @@ class Skier extends AssetImage {
    * Reset points upon crash. Save the previous points for display
    */
   resetPoints() {
-    if (this.points) {
-      this.previousPoints = this.points;
-    }
     this.points = 0;
   }
 }
