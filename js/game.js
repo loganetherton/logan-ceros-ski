@@ -157,7 +157,9 @@ class Game {
     requestAnimationFrame(this.boundGameLoop);
 
     // Update points counter
-    this.updatePointsCounter();
+    if (!window.isTesting) {
+      this.updatePointsCounter();
+    }
   };
 
   /**

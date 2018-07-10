@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Skier Test</title>
+    <link rel="stylesheet" type="text/css" href="node_modules/mocha/mocha.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+
+<body>
+<div id='mocha'></div>
+<div id='app'></div>
+
+<script src="node_modules/mocha/mocha.js"></script>
+<script src="node_modules/chai/chai.js"></script>
+<script src="./js/game.js"></script>
+<script>
+  mocha.setup('bdd');
+  var expect = chai.expect;
+</script>
+<!-- Tests -->
+<script src="./js/game.test.js"></script>
+<script>
+  window.isTesting = true;
+  mocha.run();
+</script>
+
+<body>
+<div id="reset" class="action-button" style="display: none;">
+    <div class="action-button-text" id="reset-button">
+        Reset Game
+    </div>
+</div>
+<div id="points" style="display: none;">
+    <div class="points-text-wrapper">
+        <div id="current-points" class="points-text"></div>
+        <div id="high-score" class="points-text"></div>
+        <div id="all-time" class="points-text"></div>
+        <div id="speed" class="points-text"></div>
+    </div>
+</div>
+<div id="pause" class="action-button" style="display: none;">
+    <div class="action-button-text">
+        Pause Game
+    </div>
+</div>
+</body>
+</body>
+
+</html>
