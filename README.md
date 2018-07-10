@@ -57,15 +57,16 @@ We are looking forward to see what you come up with!
 # Changelog
 
 1. Converted to class-based code to resolve scoping issue
-2. Fixed bug relating to a negative value resulting from pushing left from the crashed state
-3. Fixed issue where skier always goes left after crash, even if right button is pressed
-4. Removed magic numbers for clarity
-5. Removed numerous jQuery functions in favor of ES
-6. Decreased reliance on lodash
-7. Add favicon to stop browser complaints
-8. Add in score and high score. Display in screen during game
-9. Persist all time high score to localStorage
-10. Implement skier jumping
-11. Jump over obstacles
-12. Increase point gain while jumping
-13. Reset game on click
+2. Separated out Obstacle and Skier classes from Game class
+3. Fixed bug relating to a negative value resulting from pushing left from the crashed state
+4. Fixed issue where skier always goes left after crash, even if right button is pressed
+5. Removed magic numbers for clarity
+6. Removed numerous jQuery functions in favor of ES
+7. Decreased reliance on lodash
+8. Add favicon to stop browser complaints
+9. Add in score and high score. Display in screen during game
+10. Persist all time high score to localStorage
+11. Implement skier jumping
+12. Jump over obstacles
+13. Increase point gain while jumping
+14. Reset game on click
