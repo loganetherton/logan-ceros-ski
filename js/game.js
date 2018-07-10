@@ -88,10 +88,11 @@ class Game {
     const resetWidthRatio = 13;
     const resetHeightRatio = 20;
     const resetMarginRatio = 100;
-    this.resetButtonWidth = this.gameWidth / resetWidthRatio;
-    this.resetButtonHeight = this.gameHeight / resetHeightRatio;
-    this.resetButtonMarginLeft = this.gameWidth / resetMarginRatio;
+    this.actionButtonWidth = this.gameWidth / resetWidthRatio;
+    this.actionButtonHeight = this.gameHeight / resetHeightRatio;
+    this.actionButtonMargin = this.gameWidth / resetMarginRatio;
     this.resetButton = $('#reset');
+    this.pauseButton = $('#pause');
 
     /**
      * Skier
@@ -101,6 +102,9 @@ class Game {
 
     // Bind gameloop method once since it's an expensive call
     this.boundGameLoop = this.gameLoop.bind(this);
+
+    // Pause
+    this.gamePaused = false;
   }
 
   /**
@@ -131,7 +135,7 @@ class Game {
     // Remove content to draw the next frame
     this.clearCanvas();
 
-    if (this.skier) {
+    if (this.skier && !this.gamePaused) {
       // Handle movement
       this.moveSkier();
 
@@ -550,50 +554,61 @@ class Game {
    */
   setupEventHandler() {
     $(window).keydown(event => {
-      switch (event.which) {
+      if (!this.gamePaused && !this.skier.isJumping) {
+        switch (event.which) {
         // Move left based on current direction. If crashed, set in down-left position
-        case this.keyValues.left:
-          if (this.skier.skierDirection === this.skier.skierDirectionValues.left) {
-            this.skier.skierMapX -= this.skier.skierSpeed;
-            this.placeNewObstacle(this.skier.skierDirection);
-          } else if (this.skierCrashedState()) {
-            this.skier.skierDirection = this.skier.skierDirectionValues.downLeft;
-          } else {
-            this.skier.skierDirection--;
-          }
-          event.preventDefault();
-          break;
+          case this.keyValues.left:
+            if (this.skier.skierDirection === this.skier.skierDirectionValues.left) {
+              this.skier.skierMapX -= this.skier.skierSpeed;
+              this.placeNewObstacle(this.skier.skierDirection);
+            } else if (this.skierCrashedState()) {
+              this.skier.skierDirection = this.skier.skierDirectionValues.downLeft;
+            } else {
+              this.skier.skierDirection--;
+            }
+            event.preventDefault();
+            break;
         // Move right based on current direction. If crashed, set in down-right position
-        case this.keyValues.right:
-          if (this.skier.skierDirection === this.skier.skierDirectionValues.right) {
-            this.skier.skierMapX += this.skier.skierSpeed;
-            this.placeNewObstacle(this.skier.skierDirection);
-          } else if (this.skierCrashedState()) {
-            this.skier.skierDirection = this.skier.skierDirectionValues.downRight;
-          } else {
-            this.skier.skierDirection++;
-          }
-          event.preventDefault();
-          break;
+          case this.keyValues.right:
+            if (this.skier.skierDirection === this.skier.skierDirectionValues.right) {
+              this.skier.skierMapX += this.skier.skierSpeed;
+              this.placeNewObstacle(this.skier.skierDirection);
+            } else if (this.skierCrashedState()) {
+              this.skier.skierDirection = this.skier.skierDirectionValues.downRight;
+            } else {
+              this.skier.skierDirection++;
+            }
+            event.preventDefault();
+            break;
         // Move up if skier is going either complete left or right
-        case this.keyValues.up:
-          if (this.skier.skierDirection === this.skier.skierDirectionValues.left ||
-              this.skier.skierDirection === this.skier.skierDirectionValues.right) {
-            this.skier.skierMapY -= this.skier.skierSpeed;
-            this.placeNewObstacle(this.skier.skierDirectionValues.up);
-          }
-          event.preventDefault();
-          break;
-        case this.keyValues.down:
-          this.skier.skierDirection = this.skier.skierDirectionValues.down;
-          event.preventDefault();
-          break;
+          case this.keyValues.up:
+            if (this.skier.skierDirection === this.skier.skierDirectionValues.left ||
+                this.skier.skierDirection === this.skier.skierDirectionValues.right) {
+              this.skier.skierMapY -= this.skier.skierSpeed;
+              this.placeNewObstacle(this.skier.skierDirectionValues.up);
+            }
+            event.preventDefault();
+            break;
+          case this.keyValues.down:
+            this.skier.skierDirection = this.skier.skierDirectionValues.down;
+            event.preventDefault();
+            break;
+        }
       }
     });
 
     // Handle reset button click
     this.resetButton.click(() => {
       this.resetGame();
+    });
+
+    this.pauseButton.click(() => {
+      if (!this.gamePaused) {
+        this.skier.skierSpeed = 0;
+      } else {
+        this.skier.skierSpeed = this.skier.initialSpeed;
+      }
+      this.gamePaused = !this.gamePaused;
     });
   };
 
@@ -631,10 +646,18 @@ class Game {
     // Reset button
     this.resetButton
     .css({
-      width: this.resetButtonWidth + 'px',
-      height: this.resetButtonHeight + 'px',
+      width: this.actionButtonWidth + 'px',
+      height: this.actionButtonHeight + 'px',
       visibility: 'visible',
-      'margin-left': this.resetButtonMarginLeft + 'px'
+      'margin-left': this.actionButtonMargin + 'px'
+    });
+
+    this.pauseButton
+    .css({
+      width: this.actionButtonWidth + 'px',
+      height: this.actionButtonHeight + 'px',
+      visibility: 'visible',
+      'margin-right': this.actionButtonMargin + 'px'
     });
 
     // Attach canvas

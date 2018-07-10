@@ -1,0 +1,63 @@
+/**
+Points
+ */
+.points {
+    position: absolute;
+    top: 25px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    background-color: #80DB9E;
+    visibility: hidden;
+    opacity: .5;
+    padding: 10px;
+    -webkit-border-radius: 15px;
+    -moz-border-radius: 15px;
+    border-radius: 15px;
+    filter: drop-shadow(3px 4px 4px #FFBB00);
+    display: table;
+}
+
+.points-text-wrapper {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.points-text {
+    text-align: center;
+    font-size: 22px;
+}
+
+/**
+Action buttons, pause and reset
+ */
+.action-button {
+    position: absolute;
+    top: 25px;
+    opacity: 0.8;
+    visibility: hidden;
+    padding: 10px;
+    -webkit-border-radius: 15px;
+    -moz-border-radius: 15px;
+    border-radius: 15px;
+    filter: drop-shadow(3px 4px 4px #4444dd);
+    text-align: center;
+    font-size: 18px;
+    display: table;
+    cursor: pointer;
+}
+
+#reset {
+    left: 0;
+    background-color: #FB6542;
+}
+
+#pause {
+    right: 0;
+    background-color: #5BC8AC;
+}
+
+.action-button-text {
+    display: table-cell;
+    vertical-align: middle;
+}

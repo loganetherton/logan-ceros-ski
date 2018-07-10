@@ -9,12 +9,14 @@
 
     <script type="text/javascript" src="js/game.js"></script>
 
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
     <link rel="shortcut icon" type="image/png" href="favicon.png"/>
 
 </head>
 <body>
-    <div id="reset">
-        <div class="reset-text">
+    <div id="reset" class="action-button">
+        <div class="action-button-text">
             Reset Game
         </div>
     </div>
@@ -25,56 +27,10 @@
             <div id="all-time" class="points-text"></div>
         </div>
     </div>
+    <div id="pause" class="action-button">
+        <div class="action-button-text">
+            Pause Game
+        </div>
+    </div>
 </body>
 </html>
-
-<style>
-    .points {
-        position: absolute;
-        top: 25px;
-        left: 0;
-        right: 0;
-        margin: auto;
-        background-color: #9698e0;
-        visibility: hidden;
-        opacity: .5;
-        padding: 10px;
-        -webkit-border-radius: 15px;
-        -moz-border-radius: 15px;
-        border-radius: 15px;
-        filter: drop-shadow(3px 4px 4px #4444dd);
-        display: table;
-    }
-
-    .points-text-wrapper {
-        display: table-cell;
-        vertical-align: middle;
-    }
-
-    .points-text {
-        text-align: center;
-        font-size: 22px;
-    }
-
-    #reset {
-        position: absolute;
-        top: 25px;
-        left: 0;
-        background: #fd7d7d;
-        opacity: 0.8;
-        visibility: hidden;
-        padding: 10px;
-        -webkit-border-radius: 15px;
-        -moz-border-radius: 15px;
-        border-radius: 15px;
-        filter: drop-shadow(3px 4px 4px #4444dd);
-        text-align: center;
-        font-size: 18px;
-        display: table;
-    }
-
-    .reset-text {
-        display: table-cell;
-        vertical-align: middle;
-    }
-</style>
