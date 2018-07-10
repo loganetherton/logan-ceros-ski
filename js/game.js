@@ -155,9 +155,9 @@ class Game {
    * Update the points counter to show the current points
    */
   updatePointsCounter() {
-    this.pointsCounter.find('.current-points').html('Points: ' + this.skier.points);
-    this.pointsCounter.find('.high-score').html('High Score: ' + this.skier.highScore);
-    this.pointsCounter.find('.all-time').html('All Time High Score: ' + this.skier.allTimeHighScore);
+    this.pointsCounter.find('#current-points').html('Points: ' + this.skier.points);
+    this.pointsCounter.find('#high-score').html('High Score: ' + this.skier.highScore);
+    this.pointsCounter.find('#all-time').html('All Time High Score: ' + this.skier.allTimeHighScore);
   }
 
   /**
