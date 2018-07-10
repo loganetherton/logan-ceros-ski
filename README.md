@@ -68,3 +68,4 @@ We are looking forward to see what you come up with!
 10. Implement skier jumping
 11. Jump over obstacles
 12. Increase point gain while jumping
+13. Reset game on click

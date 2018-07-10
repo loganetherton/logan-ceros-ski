@@ -110,7 +110,7 @@ class Game {
     this.initialDraw();
     this.ctx = this.canvas[0].getContext('2d');
 
-    this.setupKeyhandler();
+    this.setupEventHandler();
     // After loading assets, display them and begin animation
     Promise.all(this.loadAssets()).then(() => {
       this.placeInitialObstacles();
@@ -548,7 +548,7 @@ class Game {
   /**
    * Handle direction arrow keypress
    */
-  setupKeyhandler() {
+  setupEventHandler() {
     $(window).keydown(event => {
       switch (event.which) {
         // Move left based on current direction. If crashed, set in down-left position
@@ -590,18 +590,28 @@ class Game {
           break;
       }
     });
+
+    // Handle reset button click
+    this.resetButton.click(() => {
+      this.resetGame();
+    });
   };
+
+  /**
+   * Reset game
+   */
+  resetGame() {
+    // Remove content to draw the next frame
+    this.clearCanvas();
+    this.skier = null;
+    this.obstacles = [];
+    this.placeInitialObstacles();
+  }
 
   /**
    * Handle the initial drawing, set initial values for speed, direction, etc
    */
   initialDraw() {
-    // // skier movement and direction values
-    // this.skierDirection = this.skierDirectionValues.right;
-    // this.skierMapX      = 0;
-    // this.skierMapY      = 0;
-    // this.skierSpeed     = this.initialSpeed;
-
     // Create canvas and set full screen
     this.canvas = $('<canvas></canvas>')
     .attr('width', this.gameWidth * this.pixelRatio)
