@@ -63,3 +63,5 @@ We are looking forward to see what you come up with!
 5. Removed numerous jQuery functions in favor of ES
 6. Decreased reliance on lodash
 7. Add favicon to stop browser complaints
+8. Add in score and high score. Display in screen during game
+9. Persist all time high score to localStorage

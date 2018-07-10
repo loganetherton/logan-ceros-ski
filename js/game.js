@@ -76,6 +76,17 @@ class Game {
       high: 7
     };
 
+    // Divisor for height and width of points display
+    const pointsCounterHeightRatio = 7;
+    const pointsCounterWidthRatio = 2;
+
+    this.pointsCounterWidth = this.gameWidth / pointsCounterWidthRatio;
+    this.pointsCounterHeight = this.gameHeight / pointsCounterHeightRatio;
+    this.pointsCounter = $('.points');
+
+    // Skier object instance
+    this.skier = null;
+
     // Bind gameloop method once since it's an expensive call
     this.boundGameLoop = this.gameLoop.bind(this);
   }
@@ -121,7 +132,19 @@ class Game {
     // Draw
     this.ctx.restore();
     requestAnimationFrame(this.boundGameLoop);
+
+    // Update points counter
+    this.updatePointsCounter();
   };
+
+  /**
+   * Update the points counter to show the current points
+   */
+  updatePointsCounter() {
+    this.pointsCounter.find('.current-points').html('Points: ' + this.skier.points);
+    this.pointsCounter.find('.high-score').html('High Score: ' + this.skier.highScore);
+    this.pointsCounter.find('.all-time').html('All Time High Score: ' + this.skier.allTimeHighScore);
+  }
 
   /**
    * Remove previous image from canvas to prepare for drawing of new image
@@ -134,24 +157,33 @@ class Game {
    * Handle skier movement via keyboard
    */
   moveSkier() {
+    let awardPoints = false;
     switch (this.skierDirection) {
       case this.skierDirectionValues.downLeft:
         this.skierMapX -= Math.round(this.skierSpeed / this.skierMovementRatio);
         this.skierMapY += Math.round(this.skierSpeed / this.skierMovementRatio);
 
         this.placeNewObstacle(this.skierDirection);
+        awardPoints = true;
         break;
       case this.skierDirectionValues.down:
         this.skierMapY += this.skierSpeed;
 
         this.placeNewObstacle(this.skierDirection);
+        awardPoints = true;
         break;
       case this.skierDirectionValues.downRight:
         this.skierMapX += this.skierSpeed / this.skierMovementRatio;
         this.skierMapY += this.skierSpeed / this.skierMovementRatio;
 
         this.placeNewObstacle(this.skierDirection);
+        awardPoints = true;
         break;
+    }
+
+    // Award points if moving downhill
+    if (awardPoints) {
+      this.skier.increasePoints();
     }
   };
 
@@ -191,14 +223,21 @@ class Game {
   drawSkier() {
     // Determine asset based on direction
     const skierAssetName = this.getSkierImageByDirection();
+
     const skierImage     = this.loadedAssets[skierAssetName];
     const x              = (this.gameWidth - skierImage.width) / 2;
     const y              = (this.gameHeight - skierImage.height) / 2;
 
-    // Get skier object
-    const skier = Game.createAssetImage(x, y, skierAssetName);
+    // Create or modify skier instance
+    if (!this.skier) {
+      this.skier = new Skier(x, y, skierAssetName);
+    } else {
+      this.skier.x = x;
+      this.skier.y = y;
+      this.skier.type = skierAssetName;
+    }
 
-    this.ctx.drawImage(skierImage, skier.x, skier.y, skierImage.width, skierImage.height);
+    this.ctx.drawImage(skierImage, this.skier.x, this.skier.y, skierImage.width, skierImage.height);
   };
 
   /**
@@ -242,7 +281,6 @@ class Game {
    */
   placeInitialObstacles() {
     // Just make the number of inital objects a simple ratio
-    console.log(Math.ceil(this.gameWidth / this.gameHeight));
     const numberObstacles = Math.ceil(this.gameWidth / this.gameHeight) *
                             _.random(this.initialLoadObjectMultipliers.low, this.initialLoadObjectMultipliers.high);
 
@@ -403,6 +441,8 @@ class Game {
 
     if (collision.length) {
       this.skierDirection = 0;
+      // Remove points, store what the previous total was
+      this.skier.resetPoints();
     }
   };
 
@@ -521,6 +561,14 @@ class Game {
       width : this.gameWidth + 'px',
       height: this.gameHeight + 'px'
     });
+
+    // Display points counter
+    $('.points')
+    .css({
+      width : this.pointsCounterWidth + 'px',
+      height: this.pointsCounterHeight + 'px',
+      visibility: 'visible'
+    });
     // Attach canvas
     $('body').append(this.canvas);
   }
@@ -537,20 +585,53 @@ $(() => {
  */
 class AssetImage {
   constructor(x, y, type) {
-    this._x = x;
-    this._y = y;
-    this._type = type;
+    this.x = x;
+    this.y = y;
+    this.type = type;
+  }
+}
+
+class Skier extends AssetImage {
+  constructor() {
+    super();
+
+    this.points = 0;
+    this.previousPoints = 0;
+    this.highScore = 0;
+    this.allTimeHighScore = 0;
+
+    // Retrieve all time high score from localStorage
+    const allTimeHighScore = localStorage.getItem('allTimeHighScore');
+    if (allTimeHighScore) {
+      this.allTimeHighScore = allTimeHighScore;
+    }
   }
 
-  get x() {
-    return this._x;
+  /**
+   * Increase the number of points the player has
+   */
+  increasePoints() {
+    this.points = this.points + 1;
+
+    // Store high score
+    if (this.highScore < this.points) {
+      this.highScore = this.points;
+    }
+
+    // Store all time high score both in instance and in localStorage
+    if (this.allTimeHighScore < this.points) {
+      this.allTimeHighScore = this.points;
+      localStorage.setItem('allTimeHighScore', this.points);
+    }
   }
 
-  get y() {
-    return this._y;
-  }
-
-  get type() {
-    return this._type;
+  /**
+   * Reset points upon crash. Save the previous points for display
+   */
+  resetPoints() {
+    if (this.points) {
+      this.previousPoints = this.points;
+    }
+    this.points = 0;
   }
 }

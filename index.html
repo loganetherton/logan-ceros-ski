@@ -13,5 +13,33 @@
 
 </head>
 <body>
+    <div class="points">
+        <div class="current-points points-text"></div>
+        <div class="high-score points-text"></div>
+        <div class="all-time points-text"></div>
+    </div>
 </body>
 </html>
+
+<style>
+    .points {
+        position: absolute;
+        top: 25px;
+        left: 0;
+        right: 0;
+        margin: auto;
+        background-color: #9698e0;
+        visibility: hidden;
+        opacity: .5;
+        padding: 10px;
+        -webkit-border-radius: 15px;
+        -moz-border-radius: 15px;
+        border-radius: 15px;
+        filter: drop-shadow(3px 4px 4px #4444dd);
+    }
+
+    .points-text {
+        text-align: center;
+        font-size: 22px;
+    }
+</style>
