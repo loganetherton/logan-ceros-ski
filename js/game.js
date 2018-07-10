@@ -114,7 +114,7 @@ class Game {
     this.initialDraw();
     this.ctx = this.canvas[0].getContext('2d');
 
-    this.setupEventHandler();
+    this.setupEventHandlers();
     // After loading assets, display them and begin animation
     Promise.all(this.loadAssets()).then(() => {
       this.placeInitialObstacles();
@@ -162,6 +162,7 @@ class Game {
     this.pointsCounter.find('#current-points').html('Points: ' + this.skier.points);
     this.pointsCounter.find('#high-score').html('High Score: ' + this.skier.highScore);
     this.pointsCounter.find('#all-time').html('All Time High Score: ' + this.skier.allTimeHighScore);
+    this.pointsCounter.find('#speed').html('Speed: ' + this.skier.skierSpeedDisplay + ' MPH');
   }
 
   /**
@@ -196,6 +197,9 @@ class Game {
 
         this.placeNewObstacle(this.skier.skierDirection);
         awardPoints = true;
+        break;
+      default:
+        this.skier.resetSpeed();
         break;
     }
 
@@ -477,6 +481,7 @@ class Game {
         this.skier.skierDirection = this.skier.skierDirectionValues.crashed;
         // Remove points, store what the previous total was
         this.skier.resetPoints();
+        this.skier.resetSpeed();
       }
     }
   };
@@ -552,35 +557,38 @@ class Game {
   /**
    * Handle direction arrow keypress
    */
-  setupEventHandler() {
+  setupEventHandlers() {
     $(window).keydown(event => {
       if (!this.gamePaused && !this.skier.isJumping) {
         switch (event.which) {
-        // Move left based on current direction. If crashed, set in down-left position
+          // Move left based on current direction. If crashed, set in down-left position
           case this.keyValues.left:
             if (this.skier.skierDirection === this.skier.skierDirectionValues.left) {
               this.skier.skierMapX -= this.skier.skierSpeed;
               this.placeNewObstacle(this.skier.skierDirection);
             } else if (this.skierCrashedState()) {
+              // Move and begin increasing speed again
               this.skier.skierDirection = this.skier.skierDirectionValues.downLeft;
+              this.skier.incrementSpeed();
             } else {
               this.skier.skierDirection--;
             }
             event.preventDefault();
             break;
-        // Move right based on current direction. If crashed, set in down-right position
+          // Move right based on current direction. If crashed, set in down-right position
           case this.keyValues.right:
             if (this.skier.skierDirection === this.skier.skierDirectionValues.right) {
               this.skier.skierMapX += this.skier.skierSpeed;
               this.placeNewObstacle(this.skier.skierDirection);
             } else if (this.skierCrashedState()) {
               this.skier.skierDirection = this.skier.skierDirectionValues.downRight;
+              this.skier.incrementSpeed();
             } else {
               this.skier.skierDirection++;
             }
             event.preventDefault();
             break;
-        // Move up if skier is going either complete left or right
+          // Move up if skier is going either complete left or right
           case this.keyValues.up:
             if (this.skier.skierDirection === this.skier.skierDirectionValues.left ||
                 this.skier.skierDirection === this.skier.skierDirectionValues.right) {
@@ -590,9 +598,19 @@ class Game {
             event.preventDefault();
             break;
           case this.keyValues.down:
+            if (this.skierCrashedState()) {
+              this.skier.incrementSpeed();
+            }
             this.skier.skierDirection = this.skier.skierDirectionValues.down;
             event.preventDefault();
             break;
+        }
+
+        // Not moving
+        if ([this.skier.skierDirectionValues.left, this.skier.skierDirectionValues.right].includes(this.skier.skierDirection)) {
+          this.skier.pauseSpeedIncrease();
+        } else if (!this.skier.increaseSpeedWatcher) {
+          this.skier.incrementSpeed();
         }
       }
     });
@@ -602,13 +620,9 @@ class Game {
       this.resetGame();
     });
 
+    // Pause the game
     this.pauseButton.click(() => {
-      if (!this.gamePaused) {
-        this.skier.skierSpeed = 0;
-      } else {
-        this.skier.skierSpeed = this.skier.initialSpeed;
-      }
-      this.gamePaused = !this.gamePaused;
+      this.pauseGame();
     });
   };
 
@@ -621,6 +635,18 @@ class Game {
     this.skier = null;
     this.obstacles = [];
     this.placeInitialObstacles();
+  }
+
+  /**
+   * Pause or continue the game
+   */
+  pauseGame() {
+    if (!this.gamePaused) {
+      this.skier.skierSpeed = 0;
+    } else {
+      this.skier.skierSpeed = this.skier.initialSpeed;
+    }
+    this.gamePaused = !this.gamePaused;
   }
 
   /**
@@ -705,9 +731,16 @@ class Skier extends AssetImage {
     this.skierMapY    = 0;
     // Skier speed
     this.initialSpeed = 8;
+    // Displayed speed
+    this.skierSpeedDisplay = 0;
     this.skierSpeed   = this.initialSpeed;
+    this.skierSpeedIncrement = 0.3;
+    this.skierSpeedIncreaseInterval = 3000;
     // Ratio for calculating skier movement
     this.skierMovementRatio = 1.4142;
+
+    // setInterval monitor for increasing speed
+    this.increaseSpeedWatcher = null;
 
     // Points
     this.points = 0;
@@ -738,7 +771,7 @@ class Skier extends AssetImage {
     // Award a point every 3 spaces, or else every one space on a jump
     if (this.movementBeforePoints >= 3 || this.isJumping) {
       this.movementBeforePoints = 0;
-      this.points = this.points + 1;
+      this.points = this.points + Math.floor(this.skierSpeed - (this.initialSpeed - 1));
 
       // Store high score
       if (this.highScore < this.points) {
@@ -757,9 +790,36 @@ class Skier extends AssetImage {
   }
 
   /**
+   * Increase skier speed over time
+   */
+  incrementSpeed() {
+    this.skierSpeedDisplay = 7;
+    this.increaseSpeedWatcher = setInterval(() => {
+      this.skierSpeed = parseFloat((this.skierSpeed + this.skierSpeedIncrement).toFixed(2));
+      this.skierSpeedDisplay = parseFloat((this.skierSpeed - 1).toFixed(2));
+    }, this.skierSpeedIncreaseInterval);
+  }
+
+  /**
    * Reset points upon crash. Save the previous points for display
    */
   resetPoints() {
     this.points = 0;
+  }
+
+  /**
+   * Reset skier speed on crash
+   */
+  resetSpeed() {
+    clearTimeout(this.increaseSpeedWatcher);
+    this.skierSpeed = this.initialSpeed;
+  }
+
+  /**
+   * Pause the skier when turning left or right and not moving
+   */
+  pauseSpeedIncrease() {
+    clearTimeout(this.increaseSpeedWatcher);
+    this.increaseSpeedWatcher = null;
   }
 }

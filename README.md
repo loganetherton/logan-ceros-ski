@@ -70,3 +70,8 @@ We are looking forward to see what you come up with!
 12. Jump over obstacles
 13. Increase point gain while jumping
 14. Reset game on click
+15. Pause and resume game
+16. Prevent skier from changing direction while jumping
+17. Increase skier speed over time
+18. Increase points awarded based on skier speed
+19. Set speed display
