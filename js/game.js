@@ -41,6 +41,34 @@ class Game {
       [this.assetNames.SKIERJUMP5]    : 'img/skier_jump_5.png',
     };
 
+    this.gameWidth  = window.innerWidth;
+    this.gameHeight = window.innerHeight;
+    // Ensure mobile handling
+    this.pixelRatio = window.devicePixelRatio;
+
+    // Display for points
+    const pointsCounterWidthRatio  = 2;
+    const pointsCounterHeightRatio = 7;
+    this.pointsCounterWidth = this.gameWidth / pointsCounterWidthRatio;
+    this.pointsCounterHeight = this.gameHeight / pointsCounterHeightRatio;
+    this.pointsCounter = $('#points');
+
+    // Display for reset button
+    const resetWidthRatio = 13;
+    const resetHeightRatio = 20;
+    const resetMarginRatio = 100;
+    this.actionButtonWidth = this.gameWidth / resetWidthRatio;
+    this.actionButtonHeight = this.gameHeight / resetHeightRatio;
+    this.actionButtonMargin = this.gameWidth / resetMarginRatio;
+    this.resetButton = $('#reset');
+    this.pauseButton = $('#pause');
+
+    // Score and speed selectors
+    this.currentScore = $('#current-points');
+    this.highScore = $('#high-score');
+    this.allTimeScore = $('#all-time');
+    this.currentSpeed = $('#speed');
+
     // Cache for application assets?
     this.loadedAssets = {};
 
@@ -70,29 +98,6 @@ class Game {
       down: 40,
       up: 38
     };
-
-    this.gameWidth  = window.innerWidth;
-    this.gameHeight = window.innerHeight;
-
-    // Ensure mobile handling
-    this.pixelRatio = window.devicePixelRatio;
-
-    // Display for points
-    const pointsCounterWidthRatio  = 2;
-    const pointsCounterHeightRatio = 7;
-    this.pointsCounterWidth = this.gameWidth / pointsCounterWidthRatio;
-    this.pointsCounterHeight = this.gameHeight / pointsCounterHeightRatio;
-    this.pointsCounter = $('.points');
-
-    // Display for reset button
-    const resetWidthRatio = 13;
-    const resetHeightRatio = 20;
-    const resetMarginRatio = 100;
-    this.actionButtonWidth = this.gameWidth / resetWidthRatio;
-    this.actionButtonHeight = this.gameHeight / resetHeightRatio;
-    this.actionButtonMargin = this.gameWidth / resetMarginRatio;
-    this.resetButton = $('#reset');
-    this.pauseButton = $('#pause');
 
     /**
      * Skier
@@ -154,6 +159,49 @@ class Game {
     // Update points counter
     this.updatePointsCounter();
   };
+
+  /**
+   * Handle the initial drawing, set initial values for speed, direction, etc
+   */
+  initialDraw() {
+    // Create canvas and set full screen
+    this.canvas = $('<canvas></canvas>')
+    .attr('width', this.gameWidth * this.pixelRatio)
+    .attr('height', this.gameHeight * this.pixelRatio)
+    .css({
+      width : this.gameWidth + 'px',
+      height: this.gameHeight + 'px'
+    });
+
+    if (!window.isTesting) {
+      // Display points counter
+      this.pointsCounter
+      .css({
+        width : this.pointsCounterWidth + 'px',
+        height: this.pointsCounterHeight + 'px',
+        visibility: 'visible'
+      });
+      // Reset button
+      this.resetButton
+      .css({
+        width: this.actionButtonWidth + 'px',
+        height: this.actionButtonHeight + 'px',
+        visibility: 'visible',
+        'margin-left': this.actionButtonMargin + 'px'
+      });
+
+      this.pauseButton
+      .css({
+        width: this.actionButtonWidth + 'px',
+        height: this.actionButtonHeight + 'px',
+        visibility: 'visible',
+        'margin-right': this.actionButtonMargin + 'px'
+      });
+    }
+
+    // Attach canvas
+    $('body').append(this.canvas);
+  }
 
   /**
    * Update the points counter to show the current points
@@ -280,7 +328,7 @@ class Game {
    * @returns {AssetImage}
    */
   static createAssetImage(x, y, type) {
-    return new AssetImage(x, y, type);
+    return new Asset(x, y, type);
   }
 
   /**
@@ -333,7 +381,7 @@ class Game {
 
   /**
    * Sort obstacles by their Y values
-   * @returns {AssetImage[]}
+   * @returns {Asset[]}
    */
   sortObstaclesByY() {
     return this.obstacles.sort((current, prev) => {
@@ -561,7 +609,7 @@ class Game {
     $(window).keydown(event => {
       if (!this.gamePaused && !this.skier.isJumping) {
         switch (event.which) {
-          // Move left based on current direction. If crashed, set in down-left position
+        // Move left based on current direction. If crashed, set in down-left position
           case this.keyValues.left:
             if (this.skier.skierDirection === this.skier.skierDirectionValues.left) {
               this.skier.skierMapX -= this.skier.skierSpeed;
@@ -575,7 +623,7 @@ class Game {
             }
             event.preventDefault();
             break;
-          // Move right based on current direction. If crashed, set in down-right position
+        // Move right based on current direction. If crashed, set in down-right position
           case this.keyValues.right:
             if (this.skier.skierDirection === this.skier.skierDirectionValues.right) {
               this.skier.skierMapX += this.skier.skierSpeed;
@@ -588,7 +636,7 @@ class Game {
             }
             event.preventDefault();
             break;
-          // Move up if skier is going either complete left or right
+        // Move up if skier is going either complete left or right
           case this.keyValues.up:
             if (this.skier.skierDirection === this.skier.skierDirectionValues.left ||
                 this.skier.skierDirection === this.skier.skierDirectionValues.right) {
@@ -642,52 +690,14 @@ class Game {
    */
   pauseGame() {
     if (!this.gamePaused) {
+      this.skier._skierSpeed = this.skier.skierSpeed;
       this.skier.skierSpeed = 0;
+      this.skier.pauseSpeedIncrease();
     } else {
-      this.skier.skierSpeed = this.skier.initialSpeed;
+      this.skier.skierSpeed = this.skier._skierSpeed;
+      this.skier.incrementSpeed();
     }
     this.gamePaused = !this.gamePaused;
-  }
-
-  /**
-   * Handle the initial drawing, set initial values for speed, direction, etc
-   */
-  initialDraw() {
-    // Create canvas and set full screen
-    this.canvas = $('<canvas></canvas>')
-    .attr('width', this.gameWidth * this.pixelRatio)
-    .attr('height', this.gameHeight * this.pixelRatio)
-    .css({
-      width : this.gameWidth + 'px',
-      height: this.gameHeight + 'px'
-    });
-
-    // Display points counter
-    this.pointsCounter
-    .css({
-      width : this.pointsCounterWidth + 'px',
-      height: this.pointsCounterHeight + 'px',
-      visibility: 'visible'
-    });
-    // Reset button
-    this.resetButton
-    .css({
-      width: this.actionButtonWidth + 'px',
-      height: this.actionButtonHeight + 'px',
-      visibility: 'visible',
-      'margin-left': this.actionButtonMargin + 'px'
-    });
-
-    this.pauseButton
-    .css({
-      width: this.actionButtonWidth + 'px',
-      height: this.actionButtonHeight + 'px',
-      visibility: 'visible',
-      'margin-right': this.actionButtonMargin + 'px'
-    });
-
-    // Attach canvas
-    $('body').append(this.canvas);
   }
 }
 
@@ -697,10 +707,11 @@ $(() => {
   game.initGame();
 });
 
+
 /**
  * Set drawn images into a separate class for easy modification in the future with whatever we need
  */
-class AssetImage {
+class Asset {
   constructor(x, y, type) {
     this.x = x;
     this.y = y;
@@ -708,52 +719,52 @@ class AssetImage {
   }
 }
 
-class Skier extends AssetImage {
-  constructor(x, y) {
-    super();
-
+class Skier {
+  constructor() {
     // Directional values for which way the skier is moving
     this.skierDirectionValues = {
-      crashed: 0,
-      left: 1,
-      downLeft: 2,
-      down: 3,
+      crashed  : 0,
+      left     : 1,
+      downLeft : 2,
+      down     : 3,
       downRight: 4,
-      right: 5,
-      up: 6
+      right    : 5,
+      up       : 6
     };
 
     // Current skier direction
     this.skierDirection = this.skierDirectionValues.right;
 
     // Skier position
-    this.skierMapX    = 0;
-    this.skierMapY    = 0;
+    this.skierMapX                  = 0;
+    this.skierMapY                  = 0;
     // Skier speed
-    this.initialSpeed = 8;
+    this.initialSpeed               = 8;
     // Displayed speed
-    this.skierSpeedDisplay = 0;
-    this.skierSpeed   = this.initialSpeed;
-    this.skierSpeedIncrement = 0.3;
+    this.skierSpeedDisplay          = 0;
+    this.skierSpeed                 = this.initialSpeed;
+    this._skierSpeed                = null;
+    this.skierSpeedIncrement        = 0.3;
     this.skierSpeedIncreaseInterval = 3000;
+    this.maxSpeed                   = 10;
     // Ratio for calculating skier movement
-    this.skierMovementRatio = 1.4142;
+    this.skierMovementRatio         = 1.4142;
 
     // setInterval monitor for increasing speed
     this.increaseSpeedWatcher = null;
 
     // Points
-    this.points = 0;
-    this.highScore = 0;
+    this.points           = 0;
+    this.highScore        = 0;
     this.allTimeHighScore = 0;
 
     // Keep track of movement so we can award points based on how far the skier has gone since last point
     this.movementBeforePoints = 0;
 
     // Skier is jumping
-    this.isJumping = false;
+    this.isJumping    = false;
     // Jump graphic to use
-    this.jumpImage = null;
+    this.jumpImage    = null;
     // Interval between changing jump images
     this.jumpInterval = 250;
 
@@ -771,7 +782,7 @@ class Skier extends AssetImage {
     // Award a point every 3 spaces, or else every one space on a jump
     if (this.movementBeforePoints >= 3 || this.isJumping) {
       this.movementBeforePoints = 0;
-      this.points = this.points + Math.floor(this.skierSpeed - (this.initialSpeed - 1));
+      this.points               = this.points + Math.floor(this.skierSpeed - (this.initialSpeed - 1));
 
       // Store high score
       if (this.highScore < this.points) {
@@ -783,7 +794,7 @@ class Skier extends AssetImage {
         this.allTimeHighScore = this.points;
         localStorage.setItem('allTimeHighScore', this.points);
       }
-    // Increase movement to keep track of when to award points
+      // Increase movement to keep track of when to award points
     } else {
       this.movementBeforePoints++;
     }
@@ -793,10 +804,15 @@ class Skier extends AssetImage {
    * Increase skier speed over time
    */
   incrementSpeed() {
-    this.skierSpeedDisplay = 7;
+    this.skierSpeedDisplay = this._skierSpeed ? this._skierSpeed - 1 : this.initialSpeed - 1;
+    this.skierSpeedDisplay = parseFloat(this.skierSpeedDisplay.toFixed(2));
     this.increaseSpeedWatcher = setInterval(() => {
-      this.skierSpeed = parseFloat((this.skierSpeed + this.skierSpeedIncrement).toFixed(2));
+      this.skierSpeed        = parseFloat((this.skierSpeed + this.skierSpeedIncrement).toFixed(2));
       this.skierSpeedDisplay = parseFloat((this.skierSpeed - 1).toFixed(2));
+      // Stop at a set number
+      if (this.skierSpeed > this.maxSpeed) {
+        clearInterval(this.increaseSpeedWatcher);
+      }
     }, this.skierSpeedIncreaseInterval);
   }
 
@@ -812,7 +828,8 @@ class Skier extends AssetImage {
    */
   resetSpeed() {
     clearTimeout(this.increaseSpeedWatcher);
-    this.skierSpeed = this.initialSpeed;
+    this.skierSpeed  = this.initialSpeed;
+    this._skierSpeed = this.initialSpeed;
     this.skierSpeedDisplay = 0;
   }
 
