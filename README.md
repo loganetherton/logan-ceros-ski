@@ -75,3 +75,4 @@ We are looking forward to see what you come up with!
 17. Increase skier speed over time
 18. Increase points awarded based on skier speed
 19. Set speed display
+20. Basic tests (VERY basic)
