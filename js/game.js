@@ -90,13 +90,21 @@ class Game {
       high: 7
     };
 
-    // Divisor for height and width of points display
-    const pointsCounterHeightRatio = 7;
+    // Display for points
     const pointsCounterWidthRatio = 2;
-
+     const pointsCounterHeightRatio = 7;
     this.pointsCounterWidth = this.gameWidth / pointsCounterWidthRatio;
     this.pointsCounterHeight = this.gameHeight / pointsCounterHeightRatio;
     this.pointsCounter = $('.points');
+
+    // Display for reset button
+    const resetWidthRatio = 13;
+    const resetHeightRatio = 20;
+    const resetMarginRatio = 100;
+    this.resetButtonWidth = this.gameWidth / resetWidthRatio;
+    this.resetButtonHeight = this.gameHeight / resetHeightRatio;
+    this.resetButtonMarginLeft = this.gameWidth / resetMarginRatio;
+    this.resetButton = $('#reset');
 
     // Skier object instance
     this.skier = null;
@@ -196,7 +204,7 @@ class Game {
     }
 
     // Award points if moving downhill
-    if (awardPoints) {
+    if (this.skier && awardPoints) {
       this.skier.increasePoints();
     }
   };
@@ -460,12 +468,13 @@ class Game {
     });
 
     if (collision.length) {
-      // Let's get that skier in  the air!
-      if (collision[0].type === 'jumpRamp') {
+       // Let's get that skier in  the air! Only jump when heading downhill
+      if (collision[0].type === 'jumpRamp' && [this.skierDirectionValues.downRight, this.skierDirectionValues.down,
+                                               this.skierDirectionValues.downLeft].includes(this.skierDirection)) {
         this.handleJump();
       // Crash skier, unless jumping
       } else if (!this.skier.isJumping) {
-        this.skierDirection = 0;
+        this.skierDirection = this.skierDirectionValues.crashed;
         // Remove points, store what the previous total was
         this.skier.resetPoints();
       }
@@ -580,7 +589,7 @@ class Game {
           event.preventDefault();
           break;
         case this.keyValues.down:
-          this.skierDirection = 3;
+          this.skierDirection = this.skierDirectionValues.down;
           event.preventDefault();
           break;
       }
@@ -607,12 +616,21 @@ class Game {
     });
 
     // Display points counter
-    $('.points')
+    this.pointsCounter
     .css({
       width : this.pointsCounterWidth + 'px',
       height: this.pointsCounterHeight + 'px',
       visibility: 'visible'
     });
+    // Reset button
+    this.resetButton
+    .css({
+      width: this.resetButtonWidth + 'px',
+      height: this.resetButtonHeight + 'px',
+      visibility: 'visible',
+      'margin-left': this.resetButtonMarginLeft + 'px'
+    });
+
     // Attach canvas
     $('body').append(this.canvas);
   }

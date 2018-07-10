@@ -13,13 +13,17 @@
 
 </head>
 <body>
-    <div class="reset">
-
+    <div id="reset">
+        <div class="reset-text">
+            Reset Game
+        </div>
     </div>
     <div class="points">
-        <div id = "current-points" class="points-text"></div>
-        <div id="high-score" class="points-text"></div>
-        <div id="all-time" class="points-text"></div>
+        <div class="points-text-wrapper">
+            <div id="current-points" class="points-text"></div>
+            <div id="high-score" class="points-text"></div>
+            <div id="all-time" class="points-text"></div>
+        </div>
     </div>
 </body>
 </html>
@@ -39,10 +43,38 @@
         -moz-border-radius: 15px;
         border-radius: 15px;
         filter: drop-shadow(3px 4px 4px #4444dd);
+        display: table;
+    }
+
+    .points-text-wrapper {
+        display: table-cell;
+        vertical-align: middle;
     }
 
     .points-text {
         text-align: center;
         font-size: 22px;
+    }
+
+    #reset {
+        position: absolute;
+        top: 25px;
+        left: 0;
+        background: #fd7d7d;
+        opacity: 0.8;
+        visibility: hidden;
+        padding: 10px;
+        -webkit-border-radius: 15px;
+        -moz-border-radius: 15px;
+        border-radius: 15px;
+        filter: drop-shadow(3px 4px 4px #4444dd);
+        text-align: center;
+        font-size: 18px;
+        display: table;
+    }
+
+    .reset-text {
+        display: table-cell;
+        vertical-align: middle;
     }
 </style>
