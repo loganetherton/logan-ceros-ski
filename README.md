@@ -65,3 +65,6 @@ We are looking forward to see what you come up with!
 7. Add favicon to stop browser complaints
 8. Add in score and high score. Display in screen during game
 9. Persist all time high score to localStorage
+10. Implement skier jumping
+11. Jump over obstacles
+12. Increase point gain while jumping
