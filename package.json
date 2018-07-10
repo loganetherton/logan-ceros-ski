@@ -1,17 +1,31 @@
 {
-    "name": "ceros-ski",
-    "version": "0.0.1",
-    "description": "",
-    "main": "web.js",
-    "scripts": {
-        "start": "node web.js"
-    },
-    "author": "dan.wash@ceros.com",
-    "license": "",
-    "engines": {
-        "node": "8.4.0"
-    },
-    "dependencies": {
-        "http-server": "^0.10.0"
-    }
+  "name": "logan-ceros-ski",
+  "version": "0.0.1",
+  "description": "Welcome to the Ceros Code Challenge - Ski Edition!",
+  "main": "web.js",
+  "scripts": {
+    "test": "./node_modules/karma/bin/karma start karma.conf.js",
+    "mocha": "./node_modules/mocha/bin/mocha \"js/*.test.js\""
+  },
+  "author": "dan.wash@ceros.com",
+  "license": "ISC",
+  "engines": {
+    "node": "8.4.0"
+  },
+  "dependencies": {
+    "http-server": "^0.10.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/loganetherton/logan-ceros-ski.git"
+  },
+  "bugs": {
+    "url": "https://github.com/loganetherton/logan-ceros-ski/issues"
+  },
+  "homepage": "https://github.com/loganetherton/logan-ceros-ski#readme",
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "jquery": "^3.3.1",
+    "mocha": "^5.2.0"
+  }
 }
