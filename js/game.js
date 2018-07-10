@@ -813,6 +813,7 @@ class Skier extends AssetImage {
   resetSpeed() {
     clearTimeout(this.increaseSpeedWatcher);
     this.skierSpeed = this.initialSpeed;
+    this.skierSpeedDisplay = 0;
   }
 
   /**
